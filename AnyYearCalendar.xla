@@ -1,0 +1,206 @@
+'THE BELOW CODE WILL PLOT A CALENDAR FOR ANY CHOOSEN YEAR ON A WORKSHEET IN EXCEL
+'================================================================================
+'YEAR COULD BE GOT IN THE ANO. SHEET.
+'PLOT WILL APPEAR IN CAL. SHEET
+'================================================================================
+
+Option Explicit
+Public Sub main()
+Application.ScreenUpdating = False
+    Call geraCalendario
+    CAL.Activate
+    CAL.Rows("1:1").Insert shift:=xlDown
+    
+    With CAL.Range("B1:X1")
+        .Merge
+        .HorizontalAlignment = xlCenter
+        .VerticalAlignment = xlCenter
+        .Font.Size = 28
+        .Font.Bold = True
+        .Font.Name = "Arial Black"
+        .Value = ANO.Cells(4, 4).Value
+    End With
+    
+    ActiveWindow.DisplayGridlines = False
+Application.ScreenUpdating = True
+    MsgBox "Calendário de " & ANO.Cells(4, 4).Value & " gerado com sucesso!"
+End Sub
+Private Sub geraCalendario()
+    Dim data_inicial As Date
+    Dim data_final As Date
+    Dim line As Integer
+    
+    CAL.Cells.Delete
+    data_inicial = "1/1/" & ANO.Cells(4, 4).Value
+    line = 1
+    
+    While Year(data_inicial) < Int(ANO.Cells(4, 4).Value) + 1
+        Call geraMes(data_inicial)
+    Wend
+    
+End Sub
+
+Private Sub geraMes(ByRef data As Date)
+    Dim linha As Integer
+    linha = achaLinha(Month(data) + 2)
+    If Day(data) = 1 Then
+        Call montaHeader(data)
+    End If
+    Call preencheDatas(data)
+    
+End Sub
+Private Sub preencheDatas(ByRef data As Date)
+    Dim mes As Integer
+    Dim linha As Integer
+    Dim coluna As Integer
+    Dim area As Range
+    
+    mes = Month(data)
+    linha = achaLinha(mes) + 2
+    coluna = achaColuna(mes)
+    
+    While Month(data) = mes
+        If Day(data) <> 1 And Weekday(data - 1) > Weekday(data) Then
+            linha = linha + 1
+        End If
+
+        CAL.Cells(linha, coluna + Weekday(data) - 1).Value = Day(data)
+        
+        data = data + 1
+    Wend
+    
+    Set area = CAL.Cells(achaLinha(mes), achaColuna(mes)).CurrentRegion
+    
+    Call formataMes(area)
+    
+End Sub
+
+
+Private Sub montaHeader(ByVal data As Date)
+    Dim coluna As Integer
+    Dim linha As Integer
+    
+    coluna = achaColuna(Month(data))
+    linha = achaLinha(Month(data))
+    With CAL.Cells(linha, coluna).Resize(1, 7)
+        .Merge
+        .VerticalAlignment = xlCenter
+        .HorizontalAlignment = xlCenter
+        .Value = UCase(MonthName(Month(data)))
+        .Interior.Pattern = xlSolid
+        .Interior.PatternColorIndex = xlAutomatic
+        .Interior.Color = 10498160
+        .Interior.TintAndShade = 0
+        .Interior.PatternTintAndShade = 0
+        .Font.ThemeColor = xlThemeColorDark1
+        .Font.TintAndShade = 0
+        .Font.Bold = True
+        .Font.Size = 20
+    End With
+    Call nomeDiasSemana(linha + 1, coluna)
+    
+    
+End Sub
+
+Private Function achaColuna(mes As Integer) As Integer
+    If mes Mod 3 = 1 Then
+        achaColuna = 2
+    ElseIf mes Mod 3 = 2 Then
+        achaColuna = 10
+    ElseIf mes Mod 3 = 0 Then
+        achaColuna = 18
+    End If
+End Function
+
+Private Function achaLinha(mes As Integer) As Integer
+    If mes < 4 Then
+        achaLinha = 1
+    ElseIf mes < 7 Then
+        achaLinha = 10
+    ElseIf mes < 10 Then
+        achaLinha = 19
+    Else
+        achaLinha = 28
+    End If
+End Function
+
+Private Sub nomeDiasSemana(linha As Integer, coluna As Integer)
+    Dim x As Integer
+    
+    With CAL.Cells(linha, coluna).Resize(1, 7)
+        .Interior.Pattern = xlSolid
+        .Interior.PatternColorIndex = xlAutomatic
+        .Interior.ThemeColor = xlThemeColorAccent5
+        .Interior.TintAndShade = 0.399975585192419
+        .Interior.PatternTintAndShade = 0
+        .Font.ThemeColor = xlThemeColorDark1
+        .Font.TintAndShade = 0
+        .Font.Bold = True
+        .Font.Size = 14
+        .HorizontalAlignment = xlCenter
+        .VerticalAlignment = xlCenter
+        .ColumnWidth = 9.5
+    End With
+    
+    For x = 1 To 7
+        CAL.Cells(linha, coluna).Value = UCase(WeekdayName(x, True))
+        coluna = coluna + 1
+    Next
+    
+End Sub
+
+Private Sub formataMes(ByRef area As Range)
+    Dim row As Range
+    
+    area.Borders(xlDiagonalDown).LineStyle = xlNone
+    area.Borders(xlDiagonalUp).LineStyle = xlNone
+    With area.Borders(xlEdgeLeft)
+        .LineStyle = xlContinuous
+        .ColorIndex = 0
+        .TintAndShade = 0
+        .Weight = xlThin
+    End With
+    With area.Borders(xlEdgeTop)
+        .LineStyle = xlContinuous
+        .ColorIndex = 0
+        .TintAndShade = 0
+        .Weight = xlThin
+    End With
+    With area.Borders(xlEdgeBottom)
+        .LineStyle = xlContinuous
+        .ColorIndex = 0
+        .TintAndShade = 0
+        .Weight = xlThin
+    End With
+    With area.Borders(xlEdgeRight)
+        .LineStyle = xlContinuous
+        .ColorIndex = 0
+        .TintAndShade = 0
+        .Weight = xlThin
+    End With
+    With area.Borders(xlInsideVertical)
+        .LineStyle = xlContinuous
+        .ColorIndex = 0
+        .TintAndShade = 0
+        .Weight = xlThin
+    End With
+    With area.Borders(xlInsideHorizontal)
+        .LineStyle = xlContinuous
+        .ColorIndex = 0
+        .TintAndShade = 0
+        .Weight = xlThin
+    End With
+    
+    For Each row In area.Rows
+        row.RowHeight = 23
+    Next
+End Sub
+Sub teste()
+    Dim a As Range
+    Dim row As Range
+    Set a = CAL.Cells(1, 2).CurrentRegion
+    
+    For Each row In a.Rows
+        MsgBox row.Address
+    Next
+End Sub
